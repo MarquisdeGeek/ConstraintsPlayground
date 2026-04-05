@@ -248,7 +248,8 @@ public class VerbalArithmetic {
             for(Character c : theQuestion.question[i].toCharArray()) {
                 row += solution.results.get(String.valueOf(c));
             }
-            String paddedRow = ((i == theQuestion.question.length -1) ? opSymbol(theQuestion.op) + " " : leftPad) + row;
+            String paddedRow = String.format(padFormat, row);
+            paddedRow = ((i == theQuestion.question.length -1) ? opSymbol(theQuestion.op) + " " : leftPad) + paddedRow;
 
             String paddedVerbal = String.format(padFormat, theQuestion.question[i]);
             String paddedResultRow = String.format(padFormat, paddedRow);
