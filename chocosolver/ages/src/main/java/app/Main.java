@@ -130,6 +130,8 @@ public class Main {
         // Well, five years ago, sister was four times older than the dog,
         // (four times older = 5 times as old)
         model.arithm(sisterThen, "=", roverThen.mul(fractionThen + 1).intVar()).post();
+        // A more literal version can be coded by chaining the maths operations, thus
+        // model.arithm(sisterThen, "=", roverThen.mul(fractionThen).add(roverThen).intVar()).post();
 
         // but now she is only three times as old.
         model.arithm(sisterNow, "=", roverNow.mul(fractionNow).intVar()).post();
