@@ -132,11 +132,15 @@ public class Main {
         IntVar sisterNow = model.intVar("sisterNow", 1, 100, false);
         IntVar roverNow = model.intVar("roverNow", 1, 100, false);
 
-        IntVar sisterThen = model.intVar("sisterThen", 1, 100, false);
-        model.arithm(sisterThen, "=", sisterNow.sub(yearsAgo).intVar()).post();
+        // Since the number of years ago is a constant, we don't need to store it in an IntVar
+        // as the arithmetical views suffice. (intOffsetView appears deprecated so use inView)
+        // IntVar sisterThen = model.intVar("sisterThen", 1, 100, false);
+        // model.arithm(sisterThen, "=", sisterNow.sub(yearsAgo).intVar()).post();
+        IntVar sisterThen = model.intView(1, sisterNow, -yearsAgo);
         
-        IntVar roverThen = model.intVar("roverThen", 1, 100, false);
-        model.arithm(roverThen, "=", roverNow.sub(yearsAgo).intVar()).post();
+        // IntVar roverThen = model.intVar("roverThen", 1, 100, false);
+        // model.arithm(roverThen, "=", roverNow.sub(yearsAgo).intVar()).post();
+        IntVar roverThen = model.intView(1, roverNow, -yearsAgo);
 
 
         // Well, five years ago, sister was four times older than the dog,
