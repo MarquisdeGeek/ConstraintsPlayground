@@ -1,5 +1,7 @@
 package app;
 
+import java.util.function.Function;
+
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solution;
 import org.chocosolver.solver.variables.IntVar;
@@ -22,7 +24,17 @@ public class Main {
         m.positional(11);
 
         // Ibid. Page 13
+        // Well, five years ago sister was four times older than the dog,
+        // but now she is only three times as old.
         m.roversAge();
+
+        // Ibid. Page 12
+        // Well, our three ages add up to exactly seventy years.
+        // And how old are you, papa?  Just six times as old as you, my son
+        // Shall I ever be half as old as you, papa?
+        // Yes, Tommy; and when that happens our three ages will add up
+        // to exactly twice as much as to-day
+        m.threeAges();
     }
 
 
@@ -144,6 +156,73 @@ public class Main {
         } else {
             System.out.println("Sorry - someone goofed, puzzle couldn't be solved!");
         }
+    }
+
+
+
+    void threeAges() {
+
+        Model model = new Model("age puzzle (4)");
+
+        // I know (through cheating!) that the answer involves months, so we count the months
+        // instead of years. This ensures integer constraints, since floating point constraints
+        // aren't possible.
+        final int yearFraction = 12;
+        final int MAX_AGE_YEARS = 100;
+        final int MAX_AGE_FRACTIONAL = MAX_AGE_YEARS * yearFraction;
+
+        Function<IntVar, String> getAgeAsString = (IntVar iv) -> {
+            Integer i = iv.getValue();
+            Integer years = i / 12;
+            Integer months = i % 12;
+
+            return years + " years, "+ months + " months";
+        };
+
+        // Create the variables - we don't know the values, yet
+        // (since we can't have unbounded IntVars, give us some headroom!)
+        IntVar mamma = model.intVar("mamma", 1, MAX_AGE_FRACTIONAL, false);
+        IntVar papa = model.intVar("papa", 1, MAX_AGE_FRACTIONAL, false);
+        IntVar tommy = model.intVar("tommy", 1, MAX_AGE_FRACTIONAL, false);
+
+
+        // Relationships known from the puzzle
+
+        // Our three ages add up to exactly seventy years
+        model.sum(new IntVar[]{mamma, papa, tommy}, "=", 70*yearFraction).post();
+
+        // And how old are you, papa? Just six times as old as you, my son
+        model.arithm(papa, "=", tommy.mul(6).intVar()).post();
+
+        // Shall I ever be half as old as you, papa?
+        // ... when that happens...
+        IntVar periodInFuture = model.intVar("infuture", 1, 50*yearFraction);
+
+        // ... our three ages...
+        IntVar mammasInFuture = model.intVar("mammasInFuture", 1, MAX_AGE_FRACTIONAL, false);
+        IntVar papasInFuture = model.intVar("papasInFuture", 1, MAX_AGE_FRACTIONAL, false);
+        IntVar tommysInFuture = model.intVar("tommysInFuture", 1, MAX_AGE_FRACTIONAL, false);
+
+        model.arithm(mamma, "+", periodInFuture, "=", mammasInFuture).post();
+        model.arithm(papa, "+", periodInFuture, "=", papasInFuture).post();
+        model.arithm(tommy, "+", periodInFuture, "=", tommysInFuture).post();
+
+        // (return to "half as old as you, papa?")
+        model.arithm(tommysInFuture.mul(2).intVar(), "=", papasInFuture).post();
+
+        // ...will add up to exactly twice as much as to-day.
+        model.arithm(papasInFuture.add(mammasInFuture).add(tommysInFuture).intVar(), "=", 140*yearFraction).post();
+
+
+        // Resolve and output
+        Solution solution = model.getSolver().findSolution();
+        if (solution != null && solution.exists()) {
+            System.out.println("Mamma is " + getAgeAsString.apply(mamma));
+            // System.out.println("And, FWIW, Papa is " + getAgeAsString.apply(papa) + " and Tommy is " + getAgeAsString.apply(tommy));
+        } else {
+            System.out.println("Sorry - someone goofed, puzzle couldn't be solved!");
+        }
+
     }
 
 }
